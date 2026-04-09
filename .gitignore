@@ -1,0 +1,39 @@
+# Environment — never commit your token
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# FAISS index (persisted to disk if you add that feature)
+faiss_index/
+
+# Uploaded PDFs
+uploaded_pdfs/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,10 @@
+streamlit==1.32.2
+langchain==0.1.16
+langchain-community==0.0.34
+sentence-transformers==2.7.0
+faiss-cpu==1.8.0
+PyPDF2==3.0.1
+requests==2.31.0
+python-dotenv==1.0.1
+numpy==1.26.4
+huggingface_hub==0.23.4
