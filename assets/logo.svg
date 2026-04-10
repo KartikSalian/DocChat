@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="40" fill="#C0392B"/>
+  <g transform="translate(40, 30)">
+    <!-- Document body -->
+    <path d="M10 0 L90 0 L120 30 L120 170 L10 170 Z" fill="white"/>
+    <!-- Folded corner -->
+    <path d="M90 0 L90 30 L120 30 Z" fill="#9B2335"/>
+    <!-- D letter -->
+    <text x="58" y="118" font-family="Arial Black, Arial" font-size="72" font-weight="900" fill="#C0392B" text-anchor="middle">D</text>
+  </g>
+</svg>

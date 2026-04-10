@@ -3,6 +3,7 @@ DocChat — RAG-powered PDF chatbot
 Streamlit front-end: chat history + multi-document support.
 """
 
+import base64
 import os
 import uuid
 
@@ -12,6 +13,15 @@ from dotenv import load_dotenv
 from rag_engine import RAGEngine
 
 load_dotenv()
+
+# ── Load logo as base64 ───────────────────────────────────────────────────────
+def _svg_b64(path: str) -> str:
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+_LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.svg")
+_LOGO_B64  = _svg_b64(_LOGO_PATH)
+_LOGO_SRC  = f"data:image/svg+xml;base64,{_LOGO_B64}"
 
 st.set_page_config(
     page_title="DocChat",
@@ -55,12 +65,9 @@ section[data-testid="stSidebar"] * { color: var(--txt) !important; }
 .dc-logo {
     display: flex; align-items: center; gap: .6rem; margin-bottom: .15rem;
 }
-.dc-logo-icon {
+.dc-logo-icon-img {
     width: 34px; height: 34px;
-    background: linear-gradient(135deg, var(--ruby), var(--ruby2));
     border-radius: 9px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
     box-shadow: 0 2px 8px rgba(192,57,43,.4);
     flex-shrink: 0;
 }
@@ -212,9 +219,9 @@ rag: RAGEngine = chat["rag"]
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     # Logo
-    st.markdown("""
+    st.markdown(f"""
     <div class="dc-logo">
-        <div class="dc-logo-icon">💎</div>
+        <img src="{_LOGO_SRC}" class="dc-logo-icon-img"/>
         <div class="dc-logo-text">Doc<span>Chat</span></div>
     </div>
     <div class="dc-tag">Chat with any PDF using AI</div>
@@ -292,9 +299,9 @@ rag  = chat["rag"]
 
 # ── Main area ─────────────────────────────────────────────────────────────────
 if not rag.is_ready():
-    st.markdown("""
+    st.markdown(f"""
     <div class="empty-state">
-        <div class="empty-icon">💎</div>
+        <img src="{_LOGO_SRC}" style="width:72px;height:72px;border-radius:18px;box-shadow:0 4px 20px rgba(192,57,43,.35);margin-bottom:.5rem;"/>
         <h2 class="empty-title">Upload a PDF to begin</h2>
         <p class="empty-sub">Drop one or more documents in the sidebar and start asking questions</p>
     </div>
@@ -304,7 +311,7 @@ if not rag.is_ready():
 
 # ── Message history ───────────────────────────────────────────────────────────
 for msg in chat["messages"]:
-    avatar = "🧑" if msg["role"] == "user" else "💎"
+    avatar = "🧑" if msg["role"] == "user" else _LOGO_SRC
     with st.chat_message(msg["role"], avatar=avatar):
         st.write(msg["content"])
         if msg["role"] == "assistant" and msg.get("sources"):
@@ -334,7 +341,7 @@ if question:
     with st.chat_message("user", avatar="🧑"):
         st.write(question)
 
-    with st.chat_message("assistant", avatar="💎"):
+    with st.chat_message("assistant", avatar=_LOGO_SRC):
         with st.spinner(""):
             try:
                 result  = rag.answer(question)
