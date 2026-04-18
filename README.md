@@ -4,14 +4,14 @@
 
 > Upload any PDF and ask questions about it instantly.
 > Powered by a **100% free** AI stack — no OpenAI, no paid APIs, zero cost.
-> Now with an **OWASP LLM Top 10 security layer** built in.
+> Built-in security layer to protect against prompt injection and data leakage.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.32-red?logo=streamlit)
 ![LangChain](https://img.shields.io/badge/LangChain-0.1-green?logo=chainlink)
 ![Groq](https://img.shields.io/badge/LLM-Groq%20Llama%203.1-orange)
 ![FAISS](https://img.shields.io/badge/Vector_Store-FAISS-blueviolet)
-![Security](https://img.shields.io/badge/Security-OWASP%20LLM%20Top%2010-red)
+![Security](https://img.shields.io/badge/Security-Input%20%26%20Output%20Scanning-red)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
@@ -35,10 +35,10 @@ Unlike simply sending a PDF to an LLM, DocChat uses semantic vector search to fi
                           ▼
 ┌──────────────────────────────────────────────────────────┐
 │                   security.py                            │
-│           OWASP LLM Security Layer (Pre-inference)       │
-│  • LLM01: Prompt injection detection                     │
-│  • LLM04: Input length / DoS throttling                  │
-│  • LLM06: System prompt extraction detection             │
+│                 Input Security Check                     │
+│  • Prompt injection detection                            │
+│  • Input length throttling (2000 char limit)             │
+│  • System prompt extraction detection                    │
 │  • Input sanitisation (null bytes, HTML tags)            │
 └─────────────────────────┬────────────────────────────────┘
                           │  Clean, validated input
@@ -66,9 +66,9 @@ Unlike simply sending a PDF to an LLM, DocChat uses semantic vector search to fi
                           ▼
 ┌──────────────────────────────────────────────────────────┐
 │                   security.py                            │
-│           OWASP LLM Security Layer (Post-inference)      │
-│  • LLM02: PII / credential leakage detection             │
-│  • LLM02: Harmful content scanning                       │
+│                Output Security Check                     │
+│  • PII / credential leakage detection                    │
+│  • Harmful content scanning                              │
 │  • System prompt echo detection                          │
 └─────────────────────────┬────────────────────────────────┘
                           │
@@ -78,34 +78,35 @@ Unlike simply sending a PDF to an LLM, DocChat uses semantic vector search to fi
 
 ---
 
-## Security Layer — OWASP LLM Top 10
+## Security Layer
 
-DocChat implements a **pre and post-inference security pipeline** based on the [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/).
+DocChat runs a **pre and post-inference security pipeline** to keep both inputs and outputs safe.
 
-| OWASP ID | Vulnerability | How DocChat mitigates it |
-|---|---|---|
-| LLM01 | Prompt Injection | Regex detection of 10+ attack patterns — instruction overrides, persona hijacking, DAN jailbreaks, indirect injection triggers |
-| LLM02 | Insecure Output Handling | Post-inference scanning for PII (credit cards, SSNs), credentials, and harmful content before response is shown |
-| LLM04 | Model Denial of Service | Input length capped at 2000 characters — oversized inputs rejected before hitting the API |
-| LLM06 | Sensitive Info Disclosure | Detects system prompt extraction attempts ("reveal your instructions", "what were you told") |
+| Check | What it catches |
+|---|---|
+| Prompt injection | Instruction overrides, persona hijacking, jailbreak attempts, indirect injection triggers |
+| Input length limit | Inputs over 2000 characters are rejected before hitting the API |
+| System prompt extraction | Detects attempts to get the model to reveal its instructions |
+| PII / credential leakage | Scans responses for credit card numbers, SSNs, passwords, and API keys |
+| Harmful content | Flags responses containing dangerous instructions or exploitation guidance |
 
 ### How it works
 
 Every query passes through two checkpoints:
 
-**Pre-inference (input check)**
+**Before the LLM**
 ```
 User input → sanitise_input() → check_input() → [BLOCK or PASS] → RAG pipeline
 ```
 
-**Post-inference (output check)**
+**After the LLM**
 ```
 LLM response → check_output() → [BLOCK or PASS] → User sees answer
 ```
 
-When a threat is detected, the user sees a severity-labelled warning instead of the response:
+When something is blocked, the user sees a severity-labelled warning instead of the response:
 - 🔴 **HIGH** — prompt injection, PII leakage, credential exposure
-- 🟠 **MEDIUM** — input DoS attempt
+- 🟠 **MEDIUM** — oversized input
 - 🟡 **LOW** — suspicious but inconclusive patterns
 
 ---
@@ -115,7 +116,7 @@ When a threat is detected, the user sees a severity-labelled warning instead of 
 - **Multi-PDF support** — upload and query multiple documents in one session
 - **Chat history** — switch between past conversations in the sidebar
 - **Source transparency** — every answer shows the exact document chunks used
-- **OWASP LLM security layer** — prompt injection detection, output scanning, DoS protection
+- **Input & output security** — prompt injection detection, output scanning, DoS protection
 - **100% free** — embeddings run locally; LLM inference uses Groq's free tier
 - **No GPU required** — runs on CPU only
 - **Dark mode** — clean minimal UI with ruby red theme
@@ -182,7 +183,7 @@ Open [http://localhost:8501](http://localhost:8501) in your browser.
 DocChat/
 ├── app.py              # Streamlit UI (chat interface, history, upload)
 ├── rag_engine.py       # RAG pipeline (parse → chunk → embed → retrieve → generate)
-├── security.py         # OWASP LLM Top 10 security layer (input + output checks)
+├── security.py         # Input/output security layer (injection detection, PII scanning)
 ├── assets/
 │   └── logo.svg        # DocChat logo
 ├── .streamlit/
@@ -205,7 +206,7 @@ DocChat/
 | Embeddings | sentence-transformers all-MiniLM-L6-v2 | Free (local) |
 | Vector store | FAISS-CPU 1.8 | Free (in-memory) |
 | LLM | Llama 3.1 8B via Groq Inference API | Free tier |
-| Security | Custom OWASP LLM Top 10 layer | Free |
+| Security | Custom input/output security layer | Free |
 
 ---
 
