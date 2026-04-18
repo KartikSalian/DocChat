@@ -12,6 +12,7 @@ import numpy as np
 from groq import Groq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
+from security import check_input, check_output, sanitise_input
 
 
 # ── Constants ──────────────────────────────────────────────────────────────────
@@ -133,9 +134,32 @@ class RAGEngine:
         question = question.strip()
         if not question:
             raise ValueError("Question must not be empty.")
+
+        # ── LLM01/LLM04/LLM06: Input security check ───────────────────────────
+        question = sanitise_input(question)
+        threat   = check_input(question)
+        if not threat.safe:
+            return {
+                "answer": f"🚨 **Security Block [{threat.threat}]**\n\n{threat.detail}",
+                "sources": [],
+                "blocked": True,
+                "threat":  threat,
+            }
+
         hits   = self.retrieve(question)
         answer = self.query_llm(question, hits)
-        return {"answer": answer, "sources": hits}
+
+        # ── LLM02: Output security check ──────────────────────────────────────
+        out_threat = check_output(answer)
+        if not out_threat.safe:
+            return {
+                "answer": f"⚠️ **Response Blocked [{out_threat.threat}]**\n\n{out_threat.detail}",
+                "sources": [],
+                "blocked": True,
+                "threat":  out_threat,
+            }
+
+        return {"answer": answer, "sources": hits, "blocked": False}
 
     # ── Helpers ────────────────────────────────────────────────────────────────
     def is_ready(self) -> bool:

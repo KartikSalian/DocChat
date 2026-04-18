@@ -347,18 +347,35 @@ if question:
                 result  = rag.answer(question)
                 answer  = result["answer"]
                 sources = result["sources"]
+                blocked = result.get("blocked", False)
 
-                st.write(answer)
-                if sources:
-                    with st.expander(f"Sources · {len(sources)} chunks", expanded=False):
-                        for i, h in enumerate(sources, 1):
-                            st.markdown(
-                                f'<div class="src-card">'
-                                f'<div class="src-from">📄 {h["source"]}</div>'
-                                f'<strong>#{i}</strong>&nbsp; {h["text"]}'
-                                f'</div>',
-                                unsafe_allow_html=True,
-                            )
+                if blocked:
+                    threat = result.get("threat")
+                    sev_color = {"high": "#c0392b", "medium": "#e67e22", "low": "#f39c12"}.get(
+                        getattr(threat, "severity", "high"), "#c0392b"
+                    )
+                    st.markdown(f"""
+                    <div style="background:{sev_color}18;border-left:4px solid {sev_color};
+                                border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:0.5rem;">
+                        <div style="font-weight:700;color:{sev_color};font-size:0.85rem;margin-bottom:0.3rem;">
+                            {getattr(threat, 'threat', 'Security Block')} &nbsp;·&nbsp;
+                            Severity: {getattr(threat, 'severity', '').upper()}
+                        </div>
+                        <div style="font-size:0.82rem;color:#374151;">{getattr(threat, 'detail', answer)}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.write(answer)
+                    if sources:
+                        with st.expander(f"Sources · {len(sources)} chunks", expanded=False):
+                            for i, h in enumerate(sources, 1):
+                                st.markdown(
+                                    f'<div class="src-card">'
+                                    f'<div class="src-from">📄 {h["source"]}</div>'
+                                    f'<strong>#{i}</strong>&nbsp; {h["text"]}'
+                                    f'</div>',
+                                    unsafe_allow_html=True,
+                                )
 
                 chat["messages"].append(
                     {"role": "assistant", "content": answer, "sources": sources}
